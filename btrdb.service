@@ -19,7 +19,7 @@ ExecStart=/usr/bin/docker run \
   --net local \
   -e BTRDB_MONGO_SERVER=mongo.local \
   -m 4G \
-  -v /srv/btrdb:/srv
+  -v /srv/btrdb:/srv \
   btrdb/release:3.4
 
 ExecStop=/usr/bin/docker stop -t 50 %p ; /usr/bin/docker rm -f %p
