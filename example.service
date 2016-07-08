@@ -1,0 +1,39 @@
+[Unit]
+Description=An Example Service
+
+# This combo says if a service fails more than three times in 24 hours
+# stop trying to start it for the rest of the 24 hours
+StartLimitBurst=3
+StartLimitInterval=24h
+
+# This says this service must only be started after this other one
+After=prod-btrdb.service
+
+[Service]
+# Always try restart on failure (up to StartLimitBurst)
+Restart=always
+
+# But wait a minute before trying to restart
+RestartSec=1m
+
+# Before you try starting the service, run this
+ExecStartPre=/usr/bin/docker pull r.cal-sdb.org/sync2q-mir
+
+# This is the command that actually starts the service
+# %p is the name of the unit (example.service)
+# --net puts it inside the named network
+# -e sets environment variables
+# -m limits memory
+# -v mounts an external directory inside the container
+ExecStart=/usr/bin/docker run \
+  --name %p \
+  --net fleet \
+  -e BTRDB_ADDR=prod-btrdb.fleet:4410 \
+  -e MONGO_ADDR=prod-mongo.fleet:27017 \
+  -m 6G \
+  -v /srv/sync:/etc/sync \
+  r.cal-sdb.org/foobaz
+
+# This is run when the service is shut down. Give it 50 seconds to stop
+# naturally, then forcably stop and remove the container
+ExecStop=/usr/bin/docker stop -t 50 %p ; /usr/bin/docker rm -f %p
