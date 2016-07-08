@@ -1,0 +1,25 @@
+[Unit]
+Description=BTrDB
+StartLimitBurst=3
+StartLimitInterval=24h
+
+[Service]
+Restart=always
+RestartSec=1m
+ExecStartPre=/usr/bin/docker pull btrdb/release:3.4
+
+# This is the command that actually starts the service
+# %p is the name of the unit (example.service)
+# --net puts it inside the named network
+# -e sets environment variables
+# -m limits memory
+# -v mounts an external directory inside the container
+ExecStart=/usr/bin/docker run \
+  --name %p \
+  --net local \
+  -e BTRDB_MONGO_SERVER=mongo.local \
+  -m 4G \
+  -v /srv/btrdb:/srv
+  btrdb/release:3.4
+
+ExecStop=/usr/bin/docker stop -t 50 %p ; /usr/bin/docker rm -f %p
