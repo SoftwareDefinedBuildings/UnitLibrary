@@ -2,6 +2,7 @@
 Description=BTrDB
 StartLimitBurst=3
 StartLimitInterval=24h
+After=mongo.service
 
 [Service]
 Restart=always
