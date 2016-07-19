@@ -1,0 +1,27 @@
+[Unit]
+Description=Giles
+After=mongo.service
+After=btrdb.service
+
+
+[Service]
+Restart=always
+RestartSec=1m
+ExecStartPre=/usr/bin/docker pull gtfierro/giles
+
+ExecStart=/bin/bash -c "/usr/bin/docker run \
+    --name %p \
+    --net local \
+    --add-host=parent:$(/sbin/ip route show | /bin/grep docker0 | /usr/bin/awk '{print $9}') \
+    -e BTRDB_SERVER=btrdb.local:4410 \
+    -e MONGO_SERVER=mongo.local:27017 \
+    -e GILES_BW_ENTITY=<entity file> \
+    -e GILES_BW_NAMESPACE=scratch.ns \
+    -e GILES_BW_LISTEN=scratch.ns \
+    -v /etc/giles:/etc/giles \
+    gtfierro/giles"
+
+ExecStop=/usr/bin/docker stop -t 30 %p ; /usr/bin/docker rm -f %p
+
+[Install]
+WantedBy=multi-user.target
